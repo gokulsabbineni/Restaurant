@@ -4,9 +4,9 @@ import (
 	"encoding/json"
 	"net/http"
 
+	"Restaurant/models"
+
 	"github.com/gorilla/mux"
-	"github.com/Anirudhvunnam/Restaurant/models"
-	
 )
 
 func CreateReservationHandler(w http.ResponseWriter, r *http.Request) {
@@ -30,10 +30,6 @@ func CreateReservationHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.WriteHeader(http.StatusCreated)
-}
-
-func ValidateReservation(reservation invalid type) {
-	panic("unimplemented")
 }
 
 func UpdateReservationHandler(w http.ResponseWriter, r *http.Request) {

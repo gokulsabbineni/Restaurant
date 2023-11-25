@@ -1,9 +1,9 @@
 package main
 
 import (
+	"Restaurant/api"
 	"net/http"
 
-	"github.com/Anirudhvunnam/Restaurant/api" // Adjusted import path
 	"github.com/gorilla/mux"
 )
 

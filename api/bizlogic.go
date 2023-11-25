@@ -1,10 +1,9 @@
 package api
 
 import (
+	"Restaurant/models"
 	"errors"
 	"time"
-
-	"github.com/Anirudhvunnam/Restaurant/models"
 )
 
 func ValidateReservation(reservation models.Reservation) error {
