@@ -29,13 +29,99 @@ func AddTable(db *sql.DB, w http.ResponseWriter, r *http.Request) error {
 
 func TableExists(db *sql.DB, table_number int, table_id int) (bool, error) {
 	var exists bool
-	query := "SELECT EXISTS(SELECT 1 FROM tables WHERE table_number=? or table_id=?)"
+	query := "SELECT EXISTS(SELECT 1 FROM tables WHERE table_number=? OR table_id=?)"
 	err := db.QueryRow(query, table_number, table_id).Scan(&exists)
 	return exists, err
 }
 
 func GetAllTables(db *sql.DB, w http.ResponseWriter, r *http.Request) error {
+	var results []model.Table
 	query := "SELECT * FROM tables"
-	resp, err := db.Exec(query)
+	resp, err := db.Query(query)
 
+	if err != nil {
+		return err
+	}
+
+	defer resp.Close()
+
+	for resp.Next() {
+		var table_id int
+		var table_number int
+		var capacity int
+		var location string
+		var description string
+
+		err := resp.Scan(&table_id, &table_number, &capacity, &location, &description)
+
+		if err != nil {
+			return err
+		}
+
+		results = append(results, model.Table{Table_id: table_id, Table_number: table_number, Capacity: capacity, Location: location, Description: description})
+	}
+	jsonBytes, err := json.Marshal(results)
+	if err != nil {
+		return err
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.Write(jsonBytes)
+	return nil
+}
+
+func SearchTables(db *sql.DB, w http.ResponseWriter, r *http.Request) error {
+	var results []model.Table
+	param := r.URL.Query().Get("table_number")
+	query := "SELECT * FROM tables WHERE table_number = ?"
+	resp, err := db.Query(query, param)
+
+	if err != nil {
+		return err
+	}
+
+	defer resp.Close()
+
+	for resp.Next() {
+		var table_id int
+		var table_number int
+		var capacity int
+		var location string
+		var description string
+
+		err := resp.Scan(&table_id, &table_number, &capacity, &location, &description)
+
+		if err != nil {
+			return err
+		}
+
+		results = append(results, model.Table{Table_id: table_id, Table_number: table_number, Capacity: capacity, Location: location, Description: description})
+	}
+	jsonBytes, err := json.Marshal(results)
+	if err != nil {
+		return err
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.Write(jsonBytes)
+	return nil
+}
+
+func DeleteTable(db *sql.DB, w http.ResponseWriter, r *http.Request) error {
+	var table model.Table
+	if err := json.NewDecoder(r.Body).Decode(&table); err != nil {
+		return err
+	}
+
+	fmt.Println(table)
+
+	query := "DELETE FROM tables (table_number) VALUES (?)"
+	_, err := db.Exec(query, table.Table_number)
+	if err != nil {
+		return err
+	}
+
+	w.WriteHeader(http.StatusCreated)
+	json.NewEncoder(w).Encode(table)
+	return nil
 }
