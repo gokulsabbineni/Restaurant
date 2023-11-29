@@ -12,7 +12,7 @@ import (
 )
 
 func main() {
-	dsn := "root:password@tcp(127.0.0.1:3306)/library?parseTime=true"
+	dsn := "root:password@tcp(127.0.0.1:3306)/restaurant_db?parseTime=true"
 
 	db, err := sql.Open("mysql", dsn)
 	if err != nil {

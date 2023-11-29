@@ -7,3 +7,7 @@ type Table struct {
 	Location     string `json:"location"`
 	Description  string `json:"description"`
 }
+
+type Table_num struct {
+	Table_number int
+}

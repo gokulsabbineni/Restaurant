@@ -8,15 +8,11 @@ import (
 	"net/http"
 )
 
-func AddTable(db *sql.DB, w http.ResponseWriter, r *http.Request) error {
-	var table model.Table
-	if err := json.NewDecoder(r.Body).Decode(&table); err != nil {
-		return err
-	}
+func AddTable(db *sql.DB, w http.ResponseWriter, table model.Table) error {
 
 	fmt.Println(table)
 
-	query := "INSERT INTO tables (table_id, table_number, capacity, location, description) VALUES (?,?,?)"
+	query := "INSERT INTO tables (table_id, table_number, capacity, location, description) VALUES (?,?,?,?,?)"
 	_, err := db.Exec(query, table.Table_id, table.Table_number, table.Capacity, table.Location, table.Description)
 	if err != nil {
 		return err
@@ -31,6 +27,13 @@ func TableExists(db *sql.DB, table_number int, table_id int) (bool, error) {
 	var exists bool
 	query := "SELECT EXISTS(SELECT 1 FROM tables WHERE table_number=? OR table_id=?)"
 	err := db.QueryRow(query, table_number, table_id).Scan(&exists)
+	return exists, err
+}
+
+func TableLookup(db *sql.DB, table_number int) (bool, error) {
+	var exists bool
+	query := "SELECT EXISTS(SELECT 1 FROM tables WHERE table_number=?)"
+	err := db.QueryRow(query, table_number).Scan(&exists)
 	return exists, err
 }
 
@@ -72,10 +75,11 @@ func GetAllTables(db *sql.DB, w http.ResponseWriter, r *http.Request) error {
 
 func SearchTables(db *sql.DB, w http.ResponseWriter, r *http.Request) error {
 	var results []model.Table
-	param := r.URL.Query().Get("table_number")
+	param := r.URL.Query().Get("table_num")
 	query := "SELECT * FROM tables WHERE table_number = ?"
 	resp, err := db.Query(query, param)
-
+	fmt.Println(param)
+	fmt.Println("HI")
 	if err != nil {
 		return err
 	}
@@ -107,21 +111,14 @@ func SearchTables(db *sql.DB, w http.ResponseWriter, r *http.Request) error {
 	return nil
 }
 
-func DeleteTable(db *sql.DB, w http.ResponseWriter, r *http.Request) error {
-	var table model.Table
-	if err := json.NewDecoder(r.Body).Decode(&table); err != nil {
-		return err
-	}
+func DeleteTable(db *sql.DB, w http.ResponseWriter, table_num int) error {
 
-	fmt.Println(table)
-
-	query := "DELETE FROM tables (table_number) VALUES (?)"
-	_, err := db.Exec(query, table.Table_number)
+	query := "DELETE FROM tables WHERE table_number = ?"
+	_, err := db.Exec(query, table_num)
 	if err != nil {
 		return err
 	}
 
-	w.WriteHeader(http.StatusCreated)
-	json.NewEncoder(w).Encode(table)
+	w.WriteHeader(http.StatusAccepted)
 	return nil
 }
