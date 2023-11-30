@@ -14,5 +14,5 @@ func main() {
 	api.SetReservationRoutes(r)
 
 	http.Handle("/", r)
-	http.ListenAndServe(":8080", nil)
+	http.ListenAndServe(":3306", nil)
 }
