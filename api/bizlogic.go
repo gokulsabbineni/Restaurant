@@ -1,46 +1,55 @@
 package api
 
 import (
+	dataservice "Restaurant/dataservice"
 	"Restaurant/models"
+	"database/sql"
 	"errors"
-	"time"
+	"fmt"
+	"net/http"
 )
 
-func ValidateReservation(reservation models.Reservation) error {
-	// Basic input validations
-	if reservation.CustomerID <= 0 || reservation.TableID <= 0 || reservation.PartySize <= 0 {
-		return errors.New("Invalid reservation details")
+func CreateReservationLogic(db *sql.DB, w http.ResponseWriter, reservation models.Reservation) error {
+	if exists, err := dataservice.ReservationExists(db, reservation.ReservationID); err != nil {
+		fmt.Println(err)
+		return err
+	} else if exists {
+		fmt.Println(exists)
+		http.Error(w, "reservation already exists", http.StatusBadRequest)
+		return errors.New("reservation already exists")
 	}
 
-	// Additional validations as needed
-
-	return nil
+	return dataservice.AddReservation(db, w, reservation)
 }
 
-func CreateReservation(reservation models.Reservation) error {
-	// Implement logic to add reservation to the database
-	// Set default status to "Pending"
-	reservation.Status = "Pending"
-	// Set current date and time
-	reservation.ReservationDate = time.Now().Format("2006-01-02")
-	reservation.ReservationTime = time.Now().Format("15:04:05")
+func UpdateReservationLogic(db *sql.DB, w http.ResponseWriter, reservation models.Reservation) error {
+	if exists, err := dataservice.ReservationExists(db, reservation.ReservationID); err != nil {
+		fmt.Println(err)
+		return err
+	} else if !exists {
+		fmt.Println(exists)
+		http.Error(w, "reservation doesn't exist", http.StatusBadRequest)
+		return errors.New("reservation doesn't exist")
+	}
 
-	// Add reservation to the database
-	// ...
-
-	return nil
+	return dataservice.UpdateReservation(db, w, reservation)
 }
 
-func UpdateReservation(reservationID string, updatedReservation models.Reservation) error {
-	// Implement logic to update reservation in the database
-	// ...
+func CancelReservationLogic(db *sql.DB, w http.ResponseWriter, reservationID int) error {
+	if exists, err := dataservice.ReservationExists(db, reservationID); err != nil {
+		fmt.Println(err)
+		return err
+	} else if !exists {
+		fmt.Println(exists)
+		http.Error(w, "reservation doesn't exist", http.StatusBadRequest)
+		return errors.New("reservation doesn't exist")
+	}
 
-	return nil
+	return dataservice.CancelReservation(db, w, reservationID)
 }
 
-func CancelReservation(reservationID string) error {
-	// Implement logic to cancel reservation in the database
-	// ...
-
-	return nil
+func GetAllReservationsLogic(db *sql.DB, w http.ResponseWriter, r *http.Request) error {
+	return dataservice.GetAllReservations(db, w, r)
 }
+
+// Additional reservation-related business logic functions can be added as needed

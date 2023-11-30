@@ -1,18 +1,36 @@
 package main
 
 import (
-	"Restaurant/api"
+	"database/sql"
+	"fmt"
+	"log"
 	"net/http"
 
-	"github.com/gorilla/mux"
+	api "Restaurant/api"
+
+	_ "github.com/go-sql-driver/mysql"
 )
 
 func main() {
-	r := mux.NewRouter()
+	dsn := "root:password@tcp(127.0.0.1:3306)/restaurant_db?parseTime=true"
 
-	// Set up routes
-	api.SetReservationRoutes(r)
+	db, err := sql.Open("mysql", dsn)
+	if err != nil {
+		log.Fatal(err)
+	}
 
-	http.Handle("/", r)
-	http.ListenAndServe(":3306", nil)
+	if err := db.Ping(); err != nil {
+		log.Fatal(err)
+	}
+
+	defer db.Close()
+
+	fmt.Println("DB drivers established")
+
+	api.RegisterRoutes(db)
+
+	fmt.Println("Sent Request")
+
+	log.Println("Listening on port 8080...")
+	log.Fatal(http.ListenAndServe(":8080", nil))
 }

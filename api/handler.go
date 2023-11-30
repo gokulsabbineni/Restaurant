@@ -1,66 +1,90 @@
 package api
 
 import (
+	"Restaurant/models"
+	"database/sql"
 	"encoding/json"
 	"net/http"
-
-	"Restaurant/models"
-
-	"github.com/gorilla/mux"
 )
 
-func CreateReservationHandler(w http.ResponseWriter, r *http.Request) {
-	var reservation models.Reservation
-	err := json.NewDecoder(r.Body).Decode(&reservation)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		return
-	}
+func AddReservation(db *sql.DB) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != http.MethodPost {
+			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+			return
+		}
 
-	err = ValidateReservation(reservation)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		return
-	}
+		var reservation models.Reservation
+		if err := json.NewDecoder(r.Body).Decode(&reservation); err != nil {
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
+		}
 
-	err = CreateReservation(reservation)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
+		if err := CreateReservationLogic(db, w, reservation); err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
 
-	w.WriteHeader(http.StatusCreated)
+		w.WriteHeader(http.StatusCreated)
+	}
 }
 
-func UpdateReservationHandler(w http.ResponseWriter, r *http.Request) {
-	vars := mux.Vars(r)
-	reservationID := vars["reservationID"]
+func UpdateReservation(db *sql.DB) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != http.MethodPut {
+			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+			return
+		}
 
-	var updatedReservation models.Reservation
-	err := json.NewDecoder(r.Body).Decode(&updatedReservation)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		return
+		var reservation models.Reservation
+		if err := json.NewDecoder(r.Body).Decode(&reservation); err != nil {
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
+		}
+
+		if err := UpdateReservationLogic(db, w, reservation); err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		w.WriteHeader(http.StatusOK)
 	}
-
-	err = UpdateReservation(reservationID, updatedReservation)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-
-	w.WriteHeader(http.StatusOK)
 }
 
-func CancelReservationHandler(w http.ResponseWriter, r *http.Request) {
-	vars := mux.Vars(r)
-	reservationID := vars["reservationID"]
+func CancelReservation(db *sql.DB) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != http.MethodDelete {
+			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+			return
+		}
 
-	err := CancelReservation(reservationID)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
+		var reservationID models.Reservation
+		if err := json.NewDecoder(r.Body).Decode(&reservationID); err != nil {
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
+		}
+
+		if err := CancelReservationLogic(db, w, reservationID.ReservationID); err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		w.WriteHeader(http.StatusOK)
 	}
-
-	w.WriteHeader(http.StatusOK)
 }
+
+func GetAllReservations(db *sql.DB) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != http.MethodGet {
+			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+			return
+		}
+
+		if err := GetAllReservationsLogic(db, w, r); err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+	}
+}
+
+// Additional reservation-related handlers can be added as needed
