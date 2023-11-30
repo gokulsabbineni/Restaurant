@@ -4,14 +4,10 @@ import (
 	model "Restaurant/model"
 	"database/sql"
 	"encoding/json"
-	"fmt"
 	"net/http"
 )
 
 func AddTable(db *sql.DB, w http.ResponseWriter, table model.Table) error {
-
-	fmt.Println(table)
-
 	query := "INSERT INTO tables (table_id, table_number, capacity, location, description) VALUES (?,?,?,?,?)"
 	_, err := db.Exec(query, table.Table_id, table.Table_number, table.Capacity, table.Location, table.Description)
 	if err != nil {
@@ -78,8 +74,6 @@ func SearchTables(db *sql.DB, w http.ResponseWriter, r *http.Request) error {
 	param := r.URL.Query().Get("table_num")
 	query := "SELECT * FROM tables WHERE table_number = ?"
 	resp, err := db.Query(query, param)
-	fmt.Println(param)
-	fmt.Println("HI")
 	if err != nil {
 		return err
 	}

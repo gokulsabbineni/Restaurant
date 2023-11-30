@@ -31,7 +31,6 @@ func GetAllTables(db *sql.DB) http.HandlerFunc {
 			http.Error(w, "Method you have declared is not allowed", http.StatusMethodNotAllowed)
 			return
 		}
-
 		if err := GetAllTablesLogic(db, w, r); err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 		}
