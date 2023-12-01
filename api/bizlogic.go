@@ -34,12 +34,12 @@ func UpdateUser(db *sql.DB, w http.ResponseWriter, r *http.Request, id string, u
 
 // DeleteUser deletes a user from the database.
 func DeleteUser(db *sql.DB, w http.ResponseWriter, r *http.Request, id string) error {
-	// if exists, err := dataservice.UserLookup(db, id); err != nil {
-	// 	return err
-	// } else if exists {
-	// 	http.Error(w, "user doesn't exist", http.StatusBadRequest)
-	// 	return errors.New("user doesn't exist")
-	// }
+	if exists, err := dataservice.UserExists(db, id); err != nil {
+		return err
+	} else if !exists {
+		http.Error(w, "user doesn't exist", http.StatusBadRequest)
+		return errors.New("user doesn't exist")
+	}
 
 	return dataservice.DeleteQuery(db, w, r, id)
 

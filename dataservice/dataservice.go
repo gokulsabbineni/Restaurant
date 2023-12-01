@@ -64,10 +64,3 @@ func DeleteQuery(db *sql.DB, w http.ResponseWriter, r *http.Request, id string) 
 	w.Write([]byte("User deleted successfully"))
 	return nil
 }
-
-// func UserLookup(db *sql.DB, id string) (bool, error) {
-// 	var exists bool
-// 	query := "SELECT EXISTS(SELECT 1 FROM tables WHERE id=?)"
-// 	err := db.QueryRow(query, id).Scan(&exists)
-// 	return exists, err
-// }
