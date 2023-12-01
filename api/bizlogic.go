@@ -1,32 +1,46 @@
 package api
 
 import (
+	"Restaurant/dataservice"
 	"Restaurant/model"
 	"database/sql"
-	"encoding/json"
+	"errors"
 	"net/http"
 )
 
-func CreateUser(db *sql.DB, w http.ResponseWriter, r *http.Request) error {
-	var user model.User
+func CreateUser(db *sql.DB, w http.ResponseWriter, user model.User) error {
 
-	// Decode the JSON request body into the user struct
-	if err := json.NewDecoder(r.Body).Decode(&user); err != nil {
+	if exists, err := dataservice.UserExists(db, user.Id); err != nil {
 		return err
+	} else if exists {
+		http.Error(w, "user already exists", http.StatusBadRequest)
+		return errors.New("user already exists")
 	}
+	return dataservice.AddQuery(db, w, user)
 
-	// Perform the database query to insert the new user
-	query := `INSERT INTO user(id, username, firstname, lastname, roles, email, contact) VALUES (?, ?, ?, ?, ?, ?, ?)`
-	_, err := db.Exec(query, user.Id, user.Username, user.Firstname, user.Lastname, user.Roles, user.Email, user.Contact)
-	if err != nil {
+}
+
+func UpdateUser(db *sql.DB, w http.ResponseWriter, r *http.Request, id string, updatedUser model.User) error {
+
+	if exists, err := dataservice.UserExists(db, updatedUser.Id); err != nil {
 		return err
+	} else if exists {
+		return dataservice.UpadateQuery(db, w, r, id, updatedUser)
+
 	}
-
-	// Set the HTTP status code to 201 (Created)
-	w.WriteHeader(http.StatusCreated)
-
-	// Encode the user as JSON and write it to the response
-	json.NewEncoder(w).Encode(user)
-
 	return nil
+
+}
+
+// DeleteUser deletes a user from the database.
+func DeleteUser(db *sql.DB, w http.ResponseWriter, r *http.Request, id string) error {
+	// if exists, err := dataservice.UserLookup(db, id); err != nil {
+	// 	return err
+	// } else if exists {
+	// 	http.Error(w, "user doesn't exist", http.StatusBadRequest)
+	// 	return errors.New("user doesn't exist")
+	// }
+
+	return dataservice.DeleteQuery(db, w, r, id)
+
 }
