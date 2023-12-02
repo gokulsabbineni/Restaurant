@@ -113,6 +113,6 @@ func DeleteTable(db *sql.DB, w http.ResponseWriter, table_num int) error {
 		return err
 	}
 
-	w.WriteHeader(http.StatusAccepted)
+	w.WriteHeader(http.StatusCreated)
 	return nil
 }
