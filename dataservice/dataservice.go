@@ -4,6 +4,7 @@ import (
 	"Restaurant/model"
 	"database/sql"
 	"encoding/json"
+	"fmt"
 	"net/http"
 )
 
@@ -26,6 +27,8 @@ func AddQuery(db *sql.DB, w http.ResponseWriter, user model.User) error {
 
 	// Encode the user as JSON and write it to the response
 	json.NewEncoder(w).Encode(user)
+
+	fmt.Println("Hello")
 
 	return nil
 }
